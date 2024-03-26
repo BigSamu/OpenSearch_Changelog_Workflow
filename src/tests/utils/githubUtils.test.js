@@ -13,7 +13,7 @@ import {
   CreateFileError,
   UpdateFileError,
   UpdatePRLabelError,
-  CategoryWithSkipOptionError,
+  InvalidAdditionalPrefixWithSkipEntryOptionError,
 } from "../../errors/index.js";
 import { SKIP_LABEL } from "../../config/constants.js";
 
@@ -277,7 +277,7 @@ describe("Github Utils Tests", () => {
       expect(mockUpdateLabel).toHaveBeenCalledTimes(1);
     });
 
-    test("throws CategoryWithSkipOptionError when 'skip' and other entries are present", async () => {
+    test("throws InvalidAdditionalPrefixWithSkipEntryOptionError when 'skip' and other entries are present", async () => {
       const entryMap = { skip: "", other: "data" };
       await expect(
         handleSkipOption(
@@ -288,7 +288,7 @@ describe("Github Utils Tests", () => {
           prNumber,
           mockUpdateLabel
         )
-      ).rejects.toThrow(CategoryWithSkipOptionError);
+      ).rejects.toThrow(InvalidAdditionalPrefixWithSkipEntryOptionError);
 
       expect(mockUpdateLabel).not.toHaveBeenCalled();
     });

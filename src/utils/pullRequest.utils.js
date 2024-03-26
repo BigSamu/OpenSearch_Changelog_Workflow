@@ -15,12 +15,12 @@ import github from "@actions/github";
  * process in the action's workflow.
  */
 export const extractPullRequestData = () => {
-  const pr_payload = github.context.payload.pull_request;
+  const gh_action_payload = github.context.payload;
+  const pr_payload = gh_action_payload.pull_request;
   try {
     console.log(
       `Extracting data for PR #${pr_payload.number} in ${pr_payload.base.repo.owner.login}/${pr_payload.base.repo.name}`
     );
-
     // Return relevant PR data including user's username
     return {
       baseOwner: pr_payload.base.repo.owner.login,
@@ -32,6 +32,7 @@ export const extractPullRequestData = () => {
       prNumber: pr_payload.number,
       prDescription: pr_payload.body,
       prLink: pr_payload.html_url,
+      prAction: gh_action_payload.action,
     };
   } catch (error) {
     console.error(`Error extracting data from pull request: ${error.message}`);

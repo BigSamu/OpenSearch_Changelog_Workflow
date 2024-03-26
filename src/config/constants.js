@@ -59,7 +59,7 @@ export const CHANGELOG_HEADING = "## Changelog";
  * @type {RegExp}
  */
 export const CHANGELOG_SECTION_REGEX = new RegExp(
-  `${CHANGELOG_HEADING}\\s*([\\s\\S]*?)(?:\\n##|$)`
+  `${CHANGELOG_HEADING}\\s*([\\s\\S]*?)(?=(?:##|###)\\s|$)`
 );
 // Explanation:
 // - 'CHANGELOG_HEADING' matches the '## Changelog' heading in markdown.

@@ -4,15 +4,12 @@
 export class GetContentError extends Error {
   /**
    * Constructs the GetContentError instance.
-   * @param {string} [message="Error retrieving content from repository"] - Custom error message.
    */
-  constructor(message = "Something went wrong. Error retrieving content from repository. Please try again.") {
+  constructor() {
+    const message =
+      "Something went wrong. Error retrieving content from repository. Please try again.";
     super(message);
     this.name = this.constructor.name;
-    /**
-     * Indicates whether this error should trigger a comment in the pull request.
-     * @type {boolean}
-     */
     this.shouldResultInPRComment = true;
   }
 }
@@ -23,15 +20,12 @@ export class GetContentError extends Error {
 export class CreateOrUpdateContentError extends Error {
   /**
    * Constructs the CreateContentError instance.
-   * @param {string} [message="Error creating or updating content in repository"] - Custom error message.
    */
-  constructor(message = "Something went wrong. Error creating or updating content in repository. Please try again.") {
+  constructor() {
+    const message =
+      "Something went wrong. Error creating or updating content in repository. Please try again.";
     super(message);
     this.name = this.constructor.name;
-    /**
-     * Indicates whether this error should trigger a comment in the pull request.
-     * @type {boolean}
-     */
     this.shouldResultInPRComment = true;
   }
 }
@@ -42,15 +36,12 @@ export class CreateOrUpdateContentError extends Error {
 export class DeleteContentError extends Error {
   /**
    * Constructs the DeleteContentError instance.
-   * @param {string} [message="Error deleting content in repository"] - Custom error message.
    */
-  constructor(message = "Something went wrong. Error deleting content in repository. Please try again.") {
+  constructor() {
+    const message =
+      "Something went wrong. Error deleting content in repository. Please try again.";
     super(message);
     this.name = this.constructor.name;
-    /**
-     * Indicates whether this error should trigger a comment in the pull request.
-     * @type {boolean}
-     */
     this.shouldResultInPRComment = true;
   }
 }

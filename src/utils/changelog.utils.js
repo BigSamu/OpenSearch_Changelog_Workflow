@@ -1,5 +1,8 @@
 import { CHANGELOG_SECTION_REGEX } from "../config/constants.js";
-import { EmptyChangelogSectionError, InvalidChangelogHeadingError } from "../errors/index.js";
+import {
+  EmptyChangelogSectionError,
+  InvalidChangelogHeadingError,
+} from "../errors/index.js";
 
 /**
  * Processes a line from a changelog section, handling comment blocks and trimming non-comment lines.
@@ -45,11 +48,12 @@ export const processChangelogLine = (line, state) => {
  */
 export const extractChangelogEntries = (
   prDescription,
-  processChangelogLine
+  processChangelogLine,
+  changesetCreationMode
 ) => {
   try {
     // Throw error if PR description is missing
-    if(!prDescription) {
+    if (!prDescription) {
       throw new InvalidChangelogHeadingError();
     }
     // Match the changelog section using the defined regex
@@ -57,8 +61,9 @@ export const extractChangelogEntries = (
     // Output -> Array of length 2:
     // changelogSection[0]: Full regex match including '## Changelog' and following content.
     // changelogSection[1]: Captured content after '## Changelog', excluding the heading itself.
+
     // Throw error if '## Changelog' header is missing or malformed
-    if(!changelogSection) {
+    if (!changelogSection) {
       throw new InvalidChangelogHeadingError();
     }
 
@@ -74,10 +79,15 @@ export const extractChangelogEntries = (
         if (processed.line) entries.push(processed.line.trim());
         return { entries, state: processed.state };
       }, initialAcc).entries;
-    
+
     // Throw error if no changelog entries are found
-    if(changelogEntries.length === 0) {
-      throw new EmptyChangelogSectionError();
+    if (changelogEntries.length === 0) {
+      if(changesetCreationMode === "automatic") {
+        throw new EmptyChangelogSectionError();
+      }
+      else {
+        return [];
+      }
     }
 
     console.log(
@@ -85,8 +95,8 @@ export const extractChangelogEntries = (
         changelogEntries.length === 1 ? "entry" : "entries"
       }:`
     );
-    for (const eachEntry of changelogEntries){
-        console.log(`${eachEntry}`);
+    for (const eachEntry of changelogEntries) {
+      console.log(`${eachEntry}`);
     }
     return changelogEntries;
   } catch (error) {

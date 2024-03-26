@@ -186,7 +186,6 @@ const deleteFileInForkedRepoByPath = async (
     // Log the commit message for the deleted file in forked repo
     console.log(message);
   } catch (error) {
-    console.log(error)
     const errorMessage = error.response?.data?.error?.message || error.message;
     console.error(
       `Error deleting file from forked repo ${owner}/${branch}:`,

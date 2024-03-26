@@ -9,12 +9,15 @@ import {
 import {
   ChangelogEntryMissingHyphenError,
   InvalidPrefixError,
+  InvalidPrefixForManualChangesetCreationError,
+  InvalidAdditionalPrefixWithSkipEntryOptionError,
   EmptyEntryDescriptionError,
   EntryTooLongError,
-  CategoryWithSkipOptionError,
   MissingChangelogPullRequestBridgeApiKeyError,
   MissingChangelogPullRequestBridgeUrlDomainError,
 } from "../errors/index.js";
+
+import { forkedAuthServices } from "../services/index.js";
 
 /**
  * Validates and formats a set of changelog entries associated with a pull request (PR).
@@ -36,26 +39,40 @@ import {
  *                     If the prefix is "skip", the object will map an empty string to "skip".
  * @throws {ChangelogEntryMissingHyphenError} - When the changelog entry does not match the expected format.
  * @throws {InvalidPrefixError} - When the prefix is not included in the predefined list of valid prefixes.
- * @throws {CategoryWithSkipOptionError} - When the changelog entry contains additional category prefixes along with the "skip" option.
+ * @throws {InvalidAdditionalPrefixWithSkipEntryOptionError} - When the changelog entry contains additional category prefixes along with the "skip" option.
  * @throws {EmptyEntryDescriptionError} - When the changelog entry description is empty.
  * @throws {EntryTooLongError} - When the changelog entry exceeds the maximum allowed length.
  */
-export const isValidChangelogEntry = (changelogEntry, totalEntries) => {
+export const isValidChangelogEntry = (
+  changelogEntry,
+  totalEntries,
+  changesetCreationMode
+) => {
   const [, marker, prefix, log] = changelogEntry.match(
     ENTRY_FORMATTING_PATTERN_REGEX
   );
   const trimmedLog = log ? log.trim() : "";
-  if (marker !== "-") {
-    throw new ChangelogEntryMissingHyphenError();
-  } else if (!CHANGELOG_ENTRY_PREFIXES.includes(prefix.toLowerCase())) {
-    throw new InvalidPrefixError(prefix);
-  } else if (prefix === "skip" && totalEntries > 1) {
-    throw new CategoryWithSkipOptionError();
-  } else if (prefix !== "skip" && !log) {
-    throw new EmptyEntryDescriptionError(prefix);
-  } else if (trimmedLog.length > MAX_ENTRY_LENGTH) {
-    throw new EntryTooLongError(log.length);
+
+  if (changesetCreationMode === "manual") {
+    if (marker !== "-") {
+      throw new ChangelogEntryMissingHyphenError();
+    } else if (prefix.toLowerCase() !== "skip") {
+      throw new InvalidPrefixForManualChangesetCreationError(prefix);
+    }
+  } else {
+    if (marker !== "-") {
+      throw new ChangelogEntryMissingHyphenError();
+    } else if (!CHANGELOG_ENTRY_PREFIXES.includes(prefix.toLowerCase())) {
+      throw new InvalidPrefixError(prefix);
+    } else if (prefix === "skip" && totalEntries > 1) {
+      throw new InvalidAdditionalPrefixWithSkipEntryOptionError();
+    } else if (prefix !== "skip" && !log) {
+      throw new EmptyEntryDescriptionError(prefix);
+    } else if (trimmedLog.length > MAX_ENTRY_LENGTH) {
+      throw new EntryTooLongError(log.length);
+    }
   }
+
   return { prefix, trimmedLog };
 };
 
@@ -76,14 +93,36 @@ export const isSkipEntry = (entryMap) => {
   }
 };
 
+/**
+ * Validates the GitHub App installation status in the forked repository.
+ * If the GitHub App is not installed or is suspended, the function returns false.
+ * Otherwise, it returns true.
+ * @param {Object} prData - An object containing the pull request data.
+ * @returns {Promise<Boolean>} - True if the GitHub App is installed and not suspended, false otherwise.
+ */
+
+export const isGitHubAppNotInstalledOrSuspended = async (prData) => {
+  const { data: githubAppInstallationInfo } =
+    await forkedAuthServices.getGitHubAppInstallationInfoFromForkedRepo(
+      prData.headOwner,
+      prData.headRepo
+    );
+  if (
+    !githubAppInstallationInfo.installed ||
+    githubAppInstallationInfo.suspended
+  ) {
+    return true;
+  }
+
+  return false;
+};
+
 export const checkChangelogPrBridgeUrlDomainIsConfigured = () => {
   if (
     !CHANGELOG_PR_BRIDGE_URL_DOMAIN ||
     CHANGELOG_PR_BRIDGE_URL_DOMAIN.trim() === ""
   ) {
-    console.error(
-      "CHANGELOG_PR_BRIDGE_URL_DOMAIN constant is not configured."
-    );
+    console.error("CHANGELOG_PR_BRIDGE_URL_DOMAIN constant is not configured.");
     throw new MissingChangelogPullRequestBridgeUrlDomainError();
   }
 };
